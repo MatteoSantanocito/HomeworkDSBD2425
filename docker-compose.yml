@@ -1,0 +1,48 @@
+services:
+  data_cleaner:
+    build:
+      context: .
+      dockerfile: ./data_cleaner/Dockerfile
+    depends_on:
+      - database
+    environment:
+      - DATABASE_URL=postgresql://Matteo:123ciao@database:5432/MatteoDB
+    restart: always  
+
+      
+  server:
+    build:
+      context: .
+      dockerfile: ./server/Dockerfile
+    ports:
+      - "50051:50051"
+    depends_on:
+      - database
+    environment:
+      - DATABASE_URL=postgresql://Matteo:123ciao@database:5432/MatteoDB
+    restart: always 
+
+  data_collector:
+    build:
+      context: .
+      dockerfile: ./data_collector/Dockerfile
+    depends_on:
+      - database
+    environment:
+      - DATABASE_URL=postgresql://Matteo:123ciao@database:5432/MatteoDB
+    restart: always
+
+  database:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: Matteo
+      POSTGRES_PASSWORD: 123ciao
+      POSTGRES_DB: MatteoDB
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+volumes:
+  db_data:
