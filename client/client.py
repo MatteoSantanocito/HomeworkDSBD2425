@@ -9,6 +9,7 @@ import random
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logging.getLogger("yfinance").setLevel(logging.CRITICAL)
 
 session_email = None
 
@@ -19,7 +20,7 @@ def ticker_verifier(ticker):
     #qui sfrutto una funzione che utilizza yf perfare il downlaod del ticker, mi torna utile per ottimizzare
     #le richieste di insert, evito alla base di inserire il ticker se non è valido
     #naturalmente ho gestito anche il caso in cui yfinance smetta di funzionare, evitando quindi l'inserimento di ticker
-    try:
+    
         dati = yf.download(ticker, period="1d", progress=False)
         if not dati.empty:
             logger.info(f"Il ticker '{ticker}' è valido.")
@@ -27,9 +28,7 @@ def ticker_verifier(ticker):
         else:
             logger.warning(f"Il ticker '{ticker}' non è valido.")
             return False
-    except Exception as e:
-        logger.error(f"Errore durante la verifica del ticker '{ticker}': {e}")
-        return False
+    
 
 def send_request_with_retry(stub_method, request, max_retries=5, initial_delay=1, backoff_factor=2, jitter=0.1):
     attempts = 0
@@ -103,6 +102,7 @@ def run():
                             user_session(stub)
                     else:
                         print("Errore durante la registrazione.")
+                    
                 else:
                     print("Ticker non valido. Registrazione annullata.")
             elif scelta == '3':
@@ -170,7 +170,7 @@ def user_session(stub):
                 else:
                     print("Nessun dato disponibile per l'utente specificato.")
             else:
-                print("Errore durante il recupero dell'ultimo valore.")
+                print("Nessun dato disponibile per l'utente specificato. Attendi 3 minuti.")
         elif scelta == '4':
             count_input = input("Quanti valori vuoi considerare per la media? ").strip()
             if not count_input.isdigit() or int(count_input) <= 0:
