@@ -1,7 +1,6 @@
-# Homework 2 - Prova in itinere DSBD 2024/25
+# Homework - Prova in itinere DSBD 2024/25
 
 **Autore:** Matteo Santanocito - 1000069999  
-**Data:** *(inserire data corrente)*
 
 ---
 
