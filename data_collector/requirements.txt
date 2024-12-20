@@ -2,3 +2,4 @@ yfinance
 SQLAlchemy
 psycopg2-binary
 cachetools
+confluent-kafka

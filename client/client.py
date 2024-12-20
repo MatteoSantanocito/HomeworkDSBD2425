@@ -1,5 +1,5 @@
 import grpc
-import service_pb2 as service_pb2
+import service_pb2
 import service_pb2_grpc
 import uuid
 import yfinance as yf
@@ -44,6 +44,9 @@ def send_request_with_retry(stub_method, request, max_retries=5, initial_delay=1
                 attempts += 1
                 sleep_time = delay + random.uniform(0, jitter)
                 logger.warning(f"Tentativo {attempts} di {max_retries} fallito ({e.code().name}). Riprovo dopo {sleep_time:.2f} secondi...")
+                if channel and channel.get_state(True) in [grpc.ChannelConnectivity.TRANSIENT_FAILURE, grpc.ChannelConnectivity.SHUTDOWN]:
+                    print("Sto tentando di ripristinare la connessione...")
+                    channel = grpc.insecure_channel('localhost:50051')
                 sleep(sleep_time) 
                 delay *= backoff_factor  
             else:
@@ -55,7 +58,8 @@ def send_request_with_retry(stub_method, request, max_retries=5, initial_delay=1
 def run():
     global session_email
     with grpc.insecure_channel('localhost:50051') as canale:
-        stub = service_pb2_grpc.UserServiceStub(canale)
+        command_stub = service_pb2_grpc.UserCommandServiceStub(canale)
+        read_stub = service_pb2_grpc.UserQueryServiceStub(canale)
         while True:
             print("\n--- Menù di avvio ---")
             print("1. Login")
@@ -70,12 +74,12 @@ def run():
                     continue
                 request_id = generate_request_id() 
                 request = service_pb2.LoginUserRequest(email=email, request_id=request_id)
-                response = send_request_with_retry(stub.LoginUser, request)
+                response = send_request_with_retry(command_stub.LoginUser, request)
                 if response:
                     if hasattr(response, 'success') and response.success:
                         print(response.message)
                         session_email = email
-                        user_session(stub)
+                        user_session(command_stub, read_stub)
                     elif hasattr(response, 'message'):
                         print(response.message)
                     else:
@@ -91,15 +95,38 @@ def run():
                 if not ticker:
                     print("Ticker non può essere vuoto.")
                     continue
-                if ticker_verifier(ticker):
+                if ticker_verifier(ticker): 
+                    
+                    question_hv = input("Vuoi impostare un high_value per il ticker? (Y/N): ")
+                    high_value = None
+                    if question_hv == 'Y':
+                      try:
+                          high_value = float(input("Inserisci high_value: "))
+                      except ValueError:
+                          print("Errore, valore non valido.")
+                    
+                    question_lv = input("Vuoi impostare un low_value per il ticker? (Y/N): ")
+                    low_value = None
+                    if question_lv == 'Y':
+                      try:
+                          low_value = float(input("Inserisci low_value: "))
+                      except ValueError:
+                          print("Errore, valore non valido.")
+                          
                     request_id = generate_request_id()
                     request = service_pb2.RegisterUserRequest(email=email, ticker=ticker, request_id=request_id)
-                    response = send_request_with_retry(stub.RegisterUser, request)
+                    if high_value is not None:
+                        request.high_value = high_value
+                    if low_value is not None:
+                        request.low_value = low_value
+                        
+                    response = send_request_with_retry(command_stub.RegisterUser, request)
+                    
                     if response:
                         print(response.message)
                         if "success" in response.message.lower():
                             session_email = email
-                            user_session(stub)
+                            user_session(command_stub, read_stub)
                     else:
                         print("Errore durante la registrazione.")
                     
@@ -111,10 +138,7 @@ def run():
             else:
                 print("Scelta non valida. Riprova.")
 
-def user_session(stub):
-    """
-    Gestisce le operazioni utente dopo il login.
-    """
+def user_session(command_stub, read_stub):
     global session_email
     while session_email:
         print(f"\n--- BENVENUTO {session_email} ---")
@@ -132,25 +156,49 @@ def user_session(stub):
                 print("Ticker non può essere vuoto.")
                 continue
             if ticker_verifier(ticker):
+                
+                question_hv = input("Vuoi impostare un high_value per il ticker? (Y/N): ")
+                high_value = None
+                if question_hv == 'Y':
+                    try:
+                        high_value = float(input("Inserisci high_value: "))
+                    except ValueError:
+                        print("Errore, valore non valido.")
+                    
+                question_lv = input("Vuoi impostare un low_value per il ticker? (Y/N): ")
+                low_value = None
+                if question_lv == 'Y':
+                    try:
+                        high_value = float(input("Inserisci low_value: "))
+                    except ValueError:
+                        print("Errore, valore non valido.")
+                
                 request_id = generate_request_id()
                 request = service_pb2.UpdateUserRequest(
                     email=session_email,
                     ticker=ticker,
                     request_id=request_id
                 )
-                response = send_request_with_retry(stub.UpdateUser, request)
+                
+                if high_value is not None:
+                    request.high_value = high_value
+                if low_value is not None:
+                    request.low_value = low_value
+                    
+                response = send_request_with_retry(command_stub.UpdateUser, request)
                 if response:
                     print(response.message)
                 else:
                     print("Errore durante l'aggiornamento del ticker.")
             else:
                 print("Ticker non valido. Aggiornamento annullato.")
+                
         elif scelta == '2':
             conferma = input("Sei sicuro di voler cancellare il tuo account? (s/n): ").strip().lower()
             if conferma == 's':
                 request_id = generate_request_id()
                 request = service_pb2.DeleteUserRequest(email=session_email, request_id=request_id)
-                response = send_request_with_retry(stub.DeleteUser, request)
+                response = send_request_with_retry(command_stub.DeleteUser, request)
                 if response:
                     print(response.message)
                     if "cancellato" in response.message.lower():
@@ -160,10 +208,11 @@ def user_session(stub):
                     print("Errore durante la cancellazione dell'account.")
             else:
                 print("Cancellazione annullata.")
+                
         elif scelta == '3':
             email = session_email
             request = service_pb2.GetLatestValueRequest(email=email)
-            response = send_request_with_retry(stub.GetLatestValue, request)
+            response = send_request_with_retry(read_stub.GetLatestValue, request)
             if response:
                 if hasattr(response, 'ticker') and response.ticker:
                     print(f"Ultimo valore per {response.ticker}: {response.value} (Timestamp: {response.timestamp})")
@@ -178,7 +227,7 @@ def user_session(stub):
                 continue
             count = int(count_input)
             request = service_pb2.GetAverageValueRequest(email=session_email, count=count)
-            response = send_request_with_retry(stub.GetAverageValue, request)
+            response = send_request_with_retry(read_stub.GetAverageValue, request)
             if response:
                 if hasattr(response, 'ticker') and response.ticker:
                     print(f"Valore medio per {response.ticker}: {response.average_value}")

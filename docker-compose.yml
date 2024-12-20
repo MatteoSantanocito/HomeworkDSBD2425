@@ -1,21 +1,121 @@
 services:
-  data_cleaner:
-    build:
-      context: .
-      dockerfile: ./data_cleaner/Dockerfile
-    depends_on:
-      - database
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
     environment:
-      - DATABASE_URL=postgresql://Matteo:123ciao@database:5432/MatteoDB
-    restart: always  
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks: 
+       - net2
+    ports:
+      - "2181:2181"
+  
+  # ADMIN KAFKA per la creazione dei topic e il monitoraggio
+  kafka-admin:
+    build:
+      context: ./admin_kafka
+      dockerfile: Dockerfile
+    container_name: kafka-admin-container
+    depends_on:
+      - kafka-broker-1
+      - kafka-broker-2
+      - kafka-broker-3
+    networks:
+      - net2
+    restart: always
+   
+  # 3 BROKER KAFKA
+  kafka-broker-1:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-broker-1
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    networks:
+      - net2
+    restart: always
+    volumes:
+      - kafka_broker_1_data:/var/lib/kafka/data
 
-      
+  kafka-broker-2:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-broker-2
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-2:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_LISTENER_NAME: PLAINTEXT  
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    networks:
+      - net2
+    restart: always
+    volumes:
+      - kafka_broker_2_data:/var/lib/kafka/data
+
+  kafka-broker-3:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-broker-3
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-3:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+    networks:
+      - net2
+    restart: always
+    volumes:
+      - kafka_broker_3_data:/var/lib/kafka/data
+    
+  database:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: Matteo
+      POSTGRES_PASSWORD: 123ciao
+      POSTGRES_DB: MatteoDB
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - net1
+      - net2
+    restart: always
+
   server:
     build:
       context: .
       dockerfile: ./server/Dockerfile
+    depends_on:
+      - database
+    environment:
+      - DATABASE_URL=postgresql://Matteo:123ciao@database:5432/MatteoDB
     ports:
       - "50051:50051"
+    networks:
+      - net1
+    restart: always
+  
+  ## produttori e consumatori kafka
+  data_cleaner:
+    build:
+      context: .
+      dockerfile: ./data_cleaner/Dockerfile
     depends_on:
       - database
     environment:
@@ -28,21 +128,48 @@ services:
       dockerfile: ./data_collector/Dockerfile
     depends_on:
       - database
+      - kafka-admin
     environment:
       - DATABASE_URL=postgresql://Matteo:123ciao@database:5432/MatteoDB
+    networks: 
+       - net2
     restart: always
 
-  database:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: Matteo
-      POSTGRES_PASSWORD: 123ciao
-      POSTGRES_DB: MatteoDB
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+  alert_notifier:
+    build:
+      context: .
+      dockerfile: ./alert_notifier/Dockerfile
+    depends_on:
+      - kafka-admin
+    networks: 
+       - net2
     restart: always
+
+  alert_system:
+    build:
+      context: .
+      dockerfile: ./alert_system/Dockerfile
+    depends_on:
+      - database
+      - kafka-admin
+    environment:
+      - DATABASE_URL=postgresql://Matteo:123ciao@database:5432/MatteoDB
+    networks: 
+       - net2
+    restart: always
+
+networks:
+  net1:
+    driver: bridge
+  net2: 
+    driver: bridge
 
 volumes:
   db_data:
+    driver: local
+  kafka_broker_1_data:
+    driver: local
+  kafka_broker_2_data:
+    driver: local
+  kafka_broker_3_data:
+    driver: local

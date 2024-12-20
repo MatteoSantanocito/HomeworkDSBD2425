@@ -25,7 +25,7 @@ if _version_not_supported:
     )
 
 
-class UserServiceStub(object):
+class UserCommandServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -35,41 +35,37 @@ class UserServiceStub(object):
             channel: A grpc.Channel.
         """
         self.RegisterUser = channel.unary_unary(
-                '/user_service.UserService/RegisterUser',
+                '/user_service.UserCommandService/RegisterUser',
                 request_serializer=service__pb2.RegisterUserRequest.SerializeToString,
                 response_deserializer=service__pb2.RegisterUserResponse.FromString,
                 _registered_method=True)
+        self.LoginUser = channel.unary_unary(
+                '/user_service.UserCommandService/LoginUser',
+                request_serializer=service__pb2.LoginUserRequest.SerializeToString,
+                response_deserializer=service__pb2.LoginUserResponse.FromString,
+                _registered_method=True)
         self.UpdateUser = channel.unary_unary(
-                '/user_service.UserService/UpdateUser',
+                '/user_service.UserCommandService/UpdateUser',
                 request_serializer=service__pb2.UpdateUserRequest.SerializeToString,
                 response_deserializer=service__pb2.UpdateUserResponse.FromString,
                 _registered_method=True)
         self.DeleteUser = channel.unary_unary(
-                '/user_service.UserService/DeleteUser',
+                '/user_service.UserCommandService/DeleteUser',
                 request_serializer=service__pb2.DeleteUserRequest.SerializeToString,
                 response_deserializer=service__pb2.DeleteUserResponse.FromString,
                 _registered_method=True)
-        self.LoginUser = channel.unary_unary(
-                '/user_service.UserService/LoginUser',
-                request_serializer=service__pb2.LoginUserRequest.SerializeToString,
-                response_deserializer=service__pb2.LoginUserResponse.FromString,
-                _registered_method=True)
-        self.GetLatestValue = channel.unary_unary(
-                '/user_service.UserService/GetLatestValue',
-                request_serializer=service__pb2.GetLatestValueRequest.SerializeToString,
-                response_deserializer=service__pb2.GetLatestValueResponse.FromString,
-                _registered_method=True)
-        self.GetAverageValue = channel.unary_unary(
-                '/user_service.UserService/GetAverageValue',
-                request_serializer=service__pb2.GetAverageValueRequest.SerializeToString,
-                response_deserializer=service__pb2.GetAverageValueResponse.FromString,
-                _registered_method=True)
 
 
-class UserServiceServicer(object):
+class UserCommandServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def RegisterUser(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def LoginUser(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -87,31 +83,18 @@ class UserServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def LoginUser(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
 
-    def GetLatestValue(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetAverageValue(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-
-def add_UserServiceServicer_to_server(servicer, server):
+def add_UserCommandServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'RegisterUser': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterUser,
                     request_deserializer=service__pb2.RegisterUserRequest.FromString,
                     response_serializer=service__pb2.RegisterUserResponse.SerializeToString,
+            ),
+            'LoginUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.LoginUser,
+                    request_deserializer=service__pb2.LoginUserRequest.FromString,
+                    response_serializer=service__pb2.LoginUserResponse.SerializeToString,
             ),
             'UpdateUser': grpc.unary_unary_rpc_method_handler(
                     servicer.UpdateUser,
@@ -123,30 +106,15 @@ def add_UserServiceServicer_to_server(servicer, server):
                     request_deserializer=service__pb2.DeleteUserRequest.FromString,
                     response_serializer=service__pb2.DeleteUserResponse.SerializeToString,
             ),
-            'LoginUser': grpc.unary_unary_rpc_method_handler(
-                    servicer.LoginUser,
-                    request_deserializer=service__pb2.LoginUserRequest.FromString,
-                    response_serializer=service__pb2.LoginUserResponse.SerializeToString,
-            ),
-            'GetLatestValue': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetLatestValue,
-                    request_deserializer=service__pb2.GetLatestValueRequest.FromString,
-                    response_serializer=service__pb2.GetLatestValueResponse.SerializeToString,
-            ),
-            'GetAverageValue': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetAverageValue,
-                    request_deserializer=service__pb2.GetAverageValueRequest.FromString,
-                    response_serializer=service__pb2.GetAverageValueResponse.SerializeToString,
-            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'user_service.UserService', rpc_method_handlers)
+            'user_service.UserCommandService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('user_service.UserService', rpc_method_handlers)
+    server.add_registered_method_handlers('user_service.UserCommandService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class UserService(object):
+class UserCommandService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -163,9 +131,36 @@ class UserService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/user_service.UserService/RegisterUser',
+            '/user_service.UserCommandService/RegisterUser',
             service__pb2.RegisterUserRequest.SerializeToString,
             service__pb2.RegisterUserResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def LoginUser(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/user_service.UserCommandService/LoginUser',
+            service__pb2.LoginUserRequest.SerializeToString,
+            service__pb2.LoginUserResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -190,7 +185,7 @@ class UserService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/user_service.UserService/UpdateUser',
+            '/user_service.UserCommandService/UpdateUser',
             service__pb2.UpdateUserRequest.SerializeToString,
             service__pb2.UpdateUserResponse.FromString,
             options,
@@ -217,7 +212,7 @@ class UserService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/user_service.UserService/DeleteUser',
+            '/user_service.UserCommandService/DeleteUser',
             service__pb2.DeleteUserRequest.SerializeToString,
             service__pb2.DeleteUserResponse.FromString,
             options,
@@ -230,32 +225,66 @@ class UserService(object):
             metadata,
             _registered_method=True)
 
-    @staticmethod
-    def LoginUser(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/user_service.UserService/LoginUser',
-            service__pb2.LoginUserRequest.SerializeToString,
-            service__pb2.LoginUserResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
+
+class UserQueryServiceStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.GetLatestValue = channel.unary_unary(
+                '/user_service.UserQueryService/GetLatestValue',
+                request_serializer=service__pb2.GetLatestValueRequest.SerializeToString,
+                response_deserializer=service__pb2.GetLatestValueResponse.FromString,
+                _registered_method=True)
+        self.GetAverageValue = channel.unary_unary(
+                '/user_service.UserQueryService/GetAverageValue',
+                request_serializer=service__pb2.GetAverageValueRequest.SerializeToString,
+                response_deserializer=service__pb2.GetAverageValueResponse.FromString,
+                _registered_method=True)
+
+
+class UserQueryServiceServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def GetLatestValue(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetAverageValue(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_UserQueryServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'GetLatestValue': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetLatestValue,
+                    request_deserializer=service__pb2.GetLatestValueRequest.FromString,
+                    response_serializer=service__pb2.GetLatestValueResponse.SerializeToString,
+            ),
+            'GetAverageValue': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAverageValue,
+                    request_deserializer=service__pb2.GetAverageValueRequest.FromString,
+                    response_serializer=service__pb2.GetAverageValueResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'user_service.UserQueryService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('user_service.UserQueryService', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class UserQueryService(object):
+    """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def GetLatestValue(request,
@@ -271,7 +300,7 @@ class UserService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/user_service.UserService/GetLatestValue',
+            '/user_service.UserQueryService/GetLatestValue',
             service__pb2.GetLatestValueRequest.SerializeToString,
             service__pb2.GetLatestValueResponse.FromString,
             options,
@@ -298,7 +327,7 @@ class UserService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/user_service.UserService/GetAverageValue',
+            '/user_service.UserQueryService/GetAverageValue',
             service__pb2.GetAverageValueRequest.SerializeToString,
             service__pb2.GetAverageValueResponse.FromString,
             options,
