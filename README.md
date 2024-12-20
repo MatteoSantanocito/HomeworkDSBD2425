@@ -130,7 +130,7 @@ Il **Alert Notifier** riceve i messaggi dal topic `to-notifier` e invia notifich
 
 | Parametro                           | Valore                           | Descrizione                                                                 |
 |-------------------------------------|-----------------------------------|-----------------------------------------------------------------------------|
-| `bootstrap.servers`                 | kafka-broker-1:9092,...          | Specifica gli indirizzi dei broker Kafka.                                   |
+| `bootstrap.servers`                 | es. kafka-broker-1:9092          | Specifica gli indirizzi dei broker Kafka.                                   |
 | `acks`                              | all                              | Conferma da tutte le repliche sincronizzate.                                |
 | `linger.ms`                         | 0 (Data Collector), 500 (Alert System) | Tempo di attesa prima di inviare i messaggi.                                |
 | `compression.type`                  | gzip                             | Compressione dei messaggi per ottimizzare la larghezza di banda.            |
