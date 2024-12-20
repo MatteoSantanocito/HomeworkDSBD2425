@@ -29,7 +29,7 @@ Gli utenti possono impostare una o entrambe le soglie e aggiornarle tramite spec
 
 ## Diagramma del sistema
 
-![Diagramma del sistema](Diagramma%20del%20sistema.png)
+![Diagramma del sistema](./img/Diagramma%20del%20sistema.png)
 
 Rispetto all'HW1, sono stati introdotti **7 nuovi container**:  
 - **Kafka-admin**, **AlertSystem**, **AlertNotifier**, **ZooKeeper**, e tre broker Kafka.  
@@ -126,8 +126,6 @@ Il **Alert Notifier** riceve i messaggi dal topic `to-notifier` e invia notifich
   - `enable.auto.commit = False`: Commit manuale degli offset per garantire un’elaborazione affidabile.
 
 ---
-
-![Diagramma del sistema](./img/Diagramma%20del%20sistema.png)
 
 ### **Parametri di configurazione di Kafka**
 
