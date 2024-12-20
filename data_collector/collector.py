@@ -26,7 +26,6 @@ def main():
          'bootstrap.servers': 'kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092',  # List of Kafka brokers
          'acks': 'all',  # Ensure all in-sync replicas acknowledge the message
          'max.in.flight.requests.per.connection': 1,  # Ensure ordering of messages
-         'batch.size': 500,  # Maximum size of a batch in bytes
          'retries': 3  # Number of retries for failed messages
     }
     producer = Producer(producer_config)
