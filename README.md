@@ -137,9 +137,3 @@ Il **Alert Notifier** riceve i messaggi dal topic `to-notifier` e invia notifich
 | `compression.type`                  | gzip                             | Compressione dei messaggi per ottimizzare la larghezza di banda.            |
 | `max.in.flight.requests.per.connection` | 1                               | Garantisce l’ordine dei messaggi.                                           |
 | `retries`                           | 3                                | Tentativi di reinvio in caso di errore.                                     |
-
----
-
-## Conclusioni
-
-L’architettura aggiornata con il **pattern CQRS** e l’integrazione di **Apache Kafka** garantisce un sistema più scalabile, affidabile e performante. Ogni componente è stato ottimizzato per gestire carichi elevati e notifiche asincrone, rispettando principi di separazione delle responsabilità e modularità.
