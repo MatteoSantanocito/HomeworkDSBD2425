@@ -83,8 +83,7 @@ try:
         if is_cache_outdated(email, value_ticker, threshold_type, ticker):
             send_email_template(email, ticker, threshold_value, threshold_type, value_ticker)
             logger.info(f"Email inviata a {email} per ticker {ticker}, soglia {threshold_type}")
-
-            # Salviamo i nuovi parametri in cache
+            
             save_into_cache(email, value_ticker, threshold_type, ticker)
         else:
             logger.info(f"Email non inviata (valori invariati) per {email}, ticker {ticker}, soglia {threshold_type}")
